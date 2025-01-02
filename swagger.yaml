@@ -1,0 +1,120 @@
+openapi: 3.0.0
+info:
+  title: Crypto Price and Alert Service
+  description: An API for managing cryptocurrency prices, alerts, and notifications.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local server
+
+paths:
+  /prices:
+    get:
+      summary: Get the current prices of Ethereum and Polygon
+      operationId: getPrices
+      responses:
+        200:
+          description: A list of current prices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ethereum:
+                    type: number
+                    description: Current price of Ethereum in USD
+                  polygon:
+                    type: number
+                    description: Current price of Polygon in USD
+  
+  /alerts:
+    post:
+      summary: Create a price alert
+      operationId: createAlert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chain:
+                  type: string
+                  description: The blockchain for which the alert is set (e.g., "ethereum", "polygon")
+                  example: ethereum
+                targetPrice:
+                  type: number
+                  description: The target price for the alert
+                  example: 2000
+                email:
+                  type: string
+                  description: The email address to notify
+                  example: user@example.com
+      responses:
+        201:
+          description: Alert created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The ID of the created alert
+                  chain:
+                    type: string
+                  targetPrice:
+                    type: number
+                  email:
+                    type: string
+
+    get:
+      summary: Get all alerts
+      operationId: getAlerts
+      responses:
+        200:
+          description: A list of all active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    chain:
+                      type: string
+                    targetPrice:
+                      type: number
+                    email:
+                      type: string
+
+  /swap-rate:
+    get:
+      summary: Get ETH to BTC swap rate
+      operationId: getSwapRate
+      parameters:
+        - name: ethAmount
+          in: query
+          required: true
+          schema:
+            type: number
+          description: The amount of Ethereum to swap
+      responses:
+        200:
+          description: Swap rate information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  btcAmount:
+                    type: number
+                    description: Amount of Bitcoin received for the swap
+                  feeInEth:
+                    type: number
+                    description: Fee charged in Ethereum
+                  feeInUsd:
+                    type: number
+                    description: Fee charged in USD
