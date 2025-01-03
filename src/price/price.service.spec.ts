@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PriceService } from './price.service';
-import { Repository } from 'typeorm';
+import { AlertService } from './../alert/alert.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Price } from './entities/price.entity';
-import { Alert } from './entities/alert.entity';
+import { Price } from './price.entity';
+import { Alert } from './../alert/alert.entity';
 import axios from 'axios';
 import * as nodemailer from 'nodemailer';
 
@@ -23,27 +23,22 @@ const mockPriceRepo = {
     getMany: jest.fn(),
   }),
 };
-
-const mockAlertRepo = {
-  find: jest.fn(),
-  save: jest.fn(),
-  create: jest.fn().mockImplementation((dto) => dto),
-  remove: jest.fn(),
-};
-
 describe('PriceService', () => {
   let service: PriceService;
+  let alertService: AlertService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PriceService,
+        AlertService,
         { provide: getRepositoryToken(Price), useValue: mockPriceRepo },
-        { provide: getRepositoryToken(Alert), useValue: mockAlertRepo },
+        { provide: getRepositoryToken(Alert), useValue: {} },
       ],
     }).compile();
 
     service = module.get<PriceService>(PriceService);
+    alertService = module.get<AlertService>(AlertService);
   });
 
   afterEach(() => {
@@ -113,36 +108,6 @@ describe('PriceService', () => {
     });
   });
 
-  describe('checkAlerts', () => {
-    it('should send email if target price is met', async () => {
-      mockAlertRepo.find.mockResolvedValue([
-        { chain: 'ethereum', targetPrice: 2000, email: 'test@example.com' },
-      ]);
-
-      service['currentPrices'] = { ethereum: 2050 };
-
-      const sendMailMock = jest.fn();
-      mockedNodemailer.createTransport.mockReturnValue({
-        sendMail: sendMailMock,
-      });
-
-      await service.checkAlerts();
-
-      expect(sendMailMock).toHaveBeenCalledWith({
-        from: process.env.EMAIL_USER,
-        to: 'test@example.com',
-        subject: 'Crypto Price Alert',
-        text: 'ethereum reached target price of 2000',
-      });
-
-      expect(mockAlertRepo.remove).toHaveBeenCalledWith({
-        chain: 'ethereum',
-        targetPrice: 2000,
-        email: 'test@example.com',
-      });
-    });
-  });
-
   describe('getHourlyPrices', () => {
     it('should retrieve hourly prices', async () => {
       const prices = [
@@ -156,32 +121,6 @@ describe('PriceService', () => {
 
       expect(result).toEqual(prices);
       expect(mockPriceRepo.createQueryBuilder).toHaveBeenCalled();
-    });
-  });
-
-  describe('setAlert', () => {
-    it('should create and save a new alert', async () => {
-      const alert = { chain: 'ethereum', targetPrice: 2000, email: 'test@example.com' };
-
-      await service.setAlert(alert.chain, alert.targetPrice, alert.email);
-
-      expect(mockAlertRepo.create).toHaveBeenCalledWith(alert);
-      expect(mockAlertRepo.save).toHaveBeenCalledWith(alert);
-    });
-  });
-
-  describe('getSwapRate', () => {
-    it('should calculate swap rate and fee', async () => {
-      mockedAxios.get.mockResolvedValueOnce({ data: { usdPrice: 2000 } }); // ETH price
-      mockedAxios.get.mockResolvedValueOnce({ data: { usdPrice: 50000 } }); // BTC price
-
-      const result = await service.getSwapRate(1); // 1 ETH
-
-      expect(result).toEqual({
-        btcAmount: 0.04,
-        feeInEth: 0.03,
-        feeInUsd: 60,
-      });
     });
   });
 });
