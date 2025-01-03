@@ -1,10 +1,10 @@
 # Price Service - README
 
 ## Overview
-This service manages cryptocurrency prices and alerts for Ethereum (ETH), Polygon (MATIC), and Bitcoin (BTC). It periodically fetches price data, sends email notifications for significant price changes, and allows users to set alerts for specific price thresholds.
+This service manages cryptocurrency prices and alerts for Ethereum (ETH) and Polygon (MATIC). It periodically fetches price data, sends email notifications for significant price changes, and allows users to set alerts for specific price thresholds.
 
 ## Features
-- Fetch current prices for ETH, MATIC, and BTC.
+- Fetch current prices for ETH and MATIC.
 - Detect and alert on price increases exceeding 3% within an hour.
 - Set and manage user alerts for specific price targets.
 - Calculate swap rates and fees for ETH to BTC conversions.
@@ -34,13 +34,11 @@ Automatically checks if any active alerts meet their conditions during periodic 
 
 ### Swap Rate Calculation
 #### Get Swap Rate
-- **Method**: `POST`
+- **Method**: `Get`
 - **Path**: `/swap`
-- **Body**:
+- **QueryParameters**:
   ```json
-  {
-    "ethAmount": 2
-  }
+    "ethAmount"= 2
   ```
 - **Response**:
   ```json
@@ -58,7 +56,7 @@ Automatically checks if any active alerts meet their conditions during periodic 
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/price-service.git
+   git clone https://github.com/kstomar/blockchain-nestjs-app.git
    ```
 
 2. Install dependencies:
